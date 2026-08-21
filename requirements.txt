@@ -11,3 +11,4 @@ email-validator
 requests
 dnspython
 streamlit
+python-detenv

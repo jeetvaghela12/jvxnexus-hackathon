@@ -7,6 +7,7 @@ from models.user_model import User
 from models.clientshield_model import ClientShieldReport
 from services.client_risk_providers import check_domain_age, check_mx_record, check_disposable_email
 from services.clientshield_engine import calculate_risk
+from services.audit_storage import store_report_to_s3
 from pydantic import BaseModel
 
 router = APIRouter(prefix="/clientshield", tags=["clientshield"])
@@ -30,8 +31,12 @@ def check_client(payload: CheckRequest, db: Session = Depends(get_db), current_u
     db.add(report)
     db.commit()
     db.refresh(report)
-    return report
-
-@router.get("/reports")
-def list_reports(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    return db.execute(select(ClientShieldReport).where(ClientShieldReport.user_id == current_user.id)).scalars().all()
+    s3_result = store_report_to_s3({"id": report.id, "client_name": report.client_name, "risk_score": report.risk_score, "created_at": report.created_at})
+    return {
+        "id": report.id, "client_name": report.client_name, "client_domain": report.client_domain,
+        "domain_age_days": report.domain_age_days, "sanctions_hit": report.sanctions_hit,
+        "mx_valid": report.mx_valid, "disposable_email": report.disposable_email,
+        "risk_score": report.risk_score, "risk_points": report.risk_points,
+        "created_at": report.created_at, "s3_stored": s3_result.get("stored", False),
+        "reasoning": result["reasoning"],
+    }

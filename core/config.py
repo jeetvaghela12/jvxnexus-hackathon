@@ -5,5 +5,6 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "sqlite:///./jvx_hackathon.db"
     class Config:
         env_file = ".env"
+        extra = "ignore"
 
 settings = Settings()

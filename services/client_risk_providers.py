@@ -11,12 +11,17 @@ DISPOSABLE_EMAIL_DOMAINS = {
 
 def check_domain_age(domain: str) -> Optional[int]:
     try:
-        response = requests.get(f"https://rdap.org/domain/{domain}", timeout=5)
+        response = requests.get(
+            f"https://rdap.verisign.com/com/v1/domain/{domain}",
+            timeout=10,
+            headers={"Accept": "application/rdap+json"}
+        )
         if response.status_code != 200:
             return None
         data = response.json()
         for event in data.get("events", []):
-            if event.get("eventAction") == "registration":
+            action = event.get("eventAction", "").lower()
+            if action in ("registration", "created", "registered"):
                 reg_date = datetime.fromisoformat(event["eventDate"].replace("Z", "+00:00"))
                 return (datetime.now(timezone.utc) - reg_date).days
         return None
