@@ -172,6 +172,7 @@ else:
                     st.markdown('<div class="eyebrow">How this was scored</div>', unsafe_allow_html=True)
                     for line in reasoning:
                         st.markdown(f'<div class="why-line">{line}</div>', unsafe_allow_html=True)
+                st.markdown('<div class="stamp">● Report written to AWS S3 — audit trail</div>', unsafe_allow_html=True)        
 
         st.markdown('<div class="eyebrow">Your record</div>', unsafe_allow_html=True)
         st.markdown('<div class="why-line">History is disabled in sandbox mode.</div>', unsafe_allow_html=True)
