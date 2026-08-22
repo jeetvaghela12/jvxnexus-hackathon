@@ -37,5 +37,7 @@ def check_mx_record(domain: str) -> Optional[bool]:
     except Exception:
         return None
 
+from disposable_email_domains import blocklist
+
 def check_disposable_email(email_domain: str) -> bool:
-    return email_domain.lower().strip() in DISPOSABLE_EMAIL_DOMAINS
+    return email_domain.lower().strip() in blocklist
