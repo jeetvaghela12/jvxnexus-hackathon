@@ -5,10 +5,8 @@ pydantic
 pydantic-settings
 python-dotenv
 pyjwt
-passlib
-bcrypt==4.0.1
+bcrypt
 email-validator
 requests
 dnspython
 streamlit
-python-detenv
