@@ -137,33 +137,35 @@ if not st.session_state.token:
             else:
                 st.error("That email is already registered. Sign in instead.")
 else:
-    st.title("Run a check")
-    st.markdown('<div class="eyebrow">Client details</div>', unsafe_allow_html=True)
-    c1, c2, c3 = st.columns(3)
-    with c1: client_name = st.text_input("Client name", placeholder="Acme Corp")
-    with c2: client_domain = st.text_input("Website domain", placeholder="acme.com")
-    with c3: client_email_domain = st.text_input("Email domain", placeholder="acme.com")
+    tab1, tab2, tab3 = st.tabs(["🛡 ClientShield — Live", "⚙ JvX Core — Testing Phase", "📋 Consolidator — Testing Phase"])
 
-    if st.button("Check this client"):
-        headers = {"Authorization": f"Bearer {st.session_state.token}"}
-        payload = {"client_name": client_name, "client_domain": client_domain, "client_email_domain": client_email_domain}
-        with st.spinner("Querying registry, mail records, and sanctions list…"):
-            r = requests.post(f"{API_URL}/clientshield/check", json=payload, headers=headers)
+    with tab1:
+        st.title("Run a check")
+        st.markdown('<div class="eyebrow">Client details</div>', unsafe_allow_html=True)
+        c1, c2, c3 = st.columns(3)
+        with c1: client_name = st.text_input("Client name", placeholder="Acme Corp")
+        with c2: client_domain = st.text_input("Website domain", placeholder="acme.com")
+        with c3: client_email_domain = st.text_input("Email domain", placeholder="acme.com")
 
-        if r.status_code == 200:
-            d = r.json()
-            risk = d["risk_score"]
+        if st.button("Check this client"):
+            headers = {"Authorization": f"Bearer {st.session_state.token}"}
+            payload = {"client_name": client_name, "client_domain": client_domain, "client_email_domain": client_email_domain}
+            with st.spinner("Querying registry, mail records, and sanctions list…"):
+                r = requests.post(f"{API_URL}/clientshield/check", json=payload, headers=headers)
 
-            age = d.get("domain_age_days")
-            age_txt, age_cls = ("Not found", "signal-unknown") if age is None else (
-                (f"{age:,} days", "signal-pass") if age >= 180 else (f"{age:,} days", "signal-fail"))
-            mx = d.get("mx_valid")
-            mx_txt, mx_cls = ("Not found", "signal-unknown") if mx is None else (
-                ("Present", "signal-pass") if mx else ("Missing", "signal-fail"))
-            dis_txt, dis_cls = ("Disposable", "signal-fail") if d.get("disposable_email") else ("Standard", "signal-pass")
-            sanc_txt, sanc_cls = ("Match found", "signal-fail") if d.get("sanctions_hit") else ("No match", "signal-pass")
+            if r.status_code == 200:
+                d = r.json()
+                risk = d["risk_score"]
+                age = d.get("domain_age_days")
+                age_txt, age_cls = ("Not found", "signal-unknown") if age is None else (
+                    (f"{age:,} days", "signal-pass") if age >= 180 else (f"{age:,} days", "signal-fail"))
+                mx = d.get("mx_valid")
+                mx_txt, mx_cls = ("Not found", "signal-unknown") if mx is None else (
+                    ("Present", "signal-pass") if mx else ("Missing", "signal-fail"))
+                dis_txt, dis_cls = ("Disposable", "signal-fail") if d.get("disposable_email") else ("Standard", "signal-pass")
+                sanc_txt, sanc_cls = ("Match found", "signal-fail") if d.get("sanctions_hit") else ("No match", "signal-pass")
 
-            st.markdown(f"""
+                st.markdown(f"""
 <div class="verdict verdict-{risk.lower()}">
   <div class="verdict-head">
     <span class="verdict-value v-{risk.lower()}">{risk}</span>
@@ -176,33 +178,54 @@ else:
 </div>
 """, unsafe_allow_html=True)
 
-            if d.get("reasoning"):
-                st.markdown('<div class="eyebrow">How this was scored</div>', unsafe_allow_html=True)
-                for line in d["reasoning"]:
-                    st.markdown(f'<div class="why-line">{line}</div>', unsafe_allow_html=True)
+                if d.get("reasoning"):
+                    st.markdown('<div class="eyebrow">How this was scored</div>', unsafe_allow_html=True)
+                    for line in d["reasoning"]:
+                        st.markdown(f'<div class="why-line">{line}</div>', unsafe_allow_html=True)
 
-            if d.get("s3_stored"):
-                st.markdown('<div class="stamp">● Report written to AWS S3 — audit trail</div>', unsafe_allow_html=True)
-        else:
-            st.error("The check didn't complete. Confirm the domain is spelled correctly and run it again.")
+                if d.get("s3_stored"):
+                    st.markdown('<div class="stamp">● Report written to AWS S3 — audit trail</div>', unsafe_allow_html=True)
+            else:
+                st.error("The check didn't complete. Confirm the domain is spelled correctly and run it again.")
 
-    headers = {"Authorization": f"Bearer {st.session_state.token}"}
-    rp = requests.get(f"{API_URL}/clientshield/reports", headers=headers)
-    if rp.status_code == 200:
-        reports = rp.json()
-        if reports:
-            st.markdown('<div class="eyebrow">Your record</div>', unsafe_allow_html=True)
-            s1, s2, s3 = st.columns(3)
-            highs = sum(1 for x in reports if x["risk_score"] == "HIGH")
-            with s1: st.markdown(f'<div class="stat-block"><div class="stat-num">{len(reports)}</div><div class="stat-cap">Checks run</div></div>', unsafe_allow_html=True)
-            with s2: st.markdown(f'<div class="stat-block"><div class="stat-num">{highs}</div><div class="stat-cap">Flagged high</div></div>', unsafe_allow_html=True)
-            with s3: st.markdown(f'<div class="stat-block"><div class="stat-num">{len(reports)}</div><div class="stat-cap">Archived to S3</div></div>', unsafe_allow_html=True)
+        headers = {"Authorization": f"Bearer {st.session_state.token}"}
+        rp = requests.get(f"{API_URL}/clientshield/reports", headers=headers)
+        if rp.status_code == 200:
+            reports = rp.json()
+            if reports:
+                st.markdown('<div class="eyebrow">Your record</div>', unsafe_allow_html=True)
+                s1, s2, s3 = st.columns(3)
+                highs = sum(1 for x in reports if x["risk_score"] == "HIGH")
+                with s1: st.markdown(f'<div class="stat-block"><div class="stat-num">{len(reports)}</div><div class="stat-cap">Checks run</div></div>', unsafe_allow_html=True)
+                with s2: st.markdown(f'<div class="stat-block"><div class="stat-num">{highs}</div><div class="stat-cap">Flagged high</div></div>', unsafe_allow_html=True)
+                with s3: st.markdown(f'<div class="stat-block"><div class="stat-num">{len(reports)}</div><div class="stat-cap">Archived to S3</div></div>', unsafe_allow_html=True)
+                st.markdown('<div class="eyebrow">History</div>', unsafe_allow_html=True)
+                for x in reversed(reports):
+                    cls = {"LOW": "ledger-l", "MEDIUM": "ledger-m", "HIGH": "ledger-h"}.get(x["risk_score"], "")
+                    col = {"LOW": "#3FB980", "MEDIUM": "#E8A33D", "HIGH": "#E5484D"}.get(x["risk_score"], "#6B7F9E")
+                    st.markdown(f'<div class="ledger-row {cls}"><span><span class="ledger-name">{x["client_name"]}</span> &nbsp;<span class="ledger-domain">{x["client_domain"]}</span></span><span class="ledger-verdict" style="color:{col}">{x["risk_score"]}</span></div>', unsafe_allow_html=True)
+            else:
+                st.markdown('<div class="eyebrow">Your record</div>', unsafe_allow_html=True)
+                st.markdown('<div class="why-line">No checks yet. Run your first one above.</div>', unsafe_allow_html=True)
 
-            st.markdown('<div class="eyebrow">History</div>', unsafe_allow_html=True)
-            for x in reversed(reports):
-                cls = {"LOW": "ledger-l", "MEDIUM": "ledger-m", "HIGH": "ledger-h"}.get(x["risk_score"], "")
-                col = {"LOW": "#3FB980", "MEDIUM": "#E8A33D", "HIGH": "#E5484D"}.get(x["risk_score"], "#6B7F9E")
-                st.markdown(f'<div class="ledger-row {cls}"><span><span class="ledger-name">{x["client_name"]}</span> &nbsp;<span class="ledger-domain">{x["client_domain"]}</span></span><span class="ledger-verdict" style="color:{col}">{x["risk_score"]}</span></div>', unsafe_allow_html=True)
-        else:
-            st.markdown('<div class="eyebrow">Your record</div>', unsafe_allow_html=True)
-            st.markdown('<div class="why-line">No checks yet. Run your first one above.</div>', unsafe_allow_html=True)
+    with tab2:
+        st.title("JvX Core")
+        st.markdown('<div class="stamp" style="color:#E8A33D;">◐ Testing Phase — architecture designed, not yet connected to a live bank partner</div>', unsafe_allow_html=True)
+        st.markdown('<div class="brand-sub">A pure technology layer. We never touch the money — a licensed bank partner does. Here is how a payment would move through it:</div>', unsafe_allow_html=True)
+        st.markdown("---")
+        cols = st.columns(4)
+        steps = [("1", "Client Pays", "Funds enter the bank partner's escrow account, not ours"),
+                 ("2", "Bank Signals Us", "A webhook tells our system money has arrived"),
+                 ("3", "We Screen It", "Fraud and duplicate-invoice checks run before release"),
+                 ("4", "Bank Releases", "Funds move to the freelancer, minus fees, by the bank")]
+        for col, (num, title, desc) in zip(cols, steps):
+            with col:
+                st.markdown(f'<div class="stat-block"><div class="stat-num">{num}</div><div class="ledger-name">{title}</div><div class="why-line" style="margin-left:0;border-left:none;padding-left:0;">{desc}</div></div>', unsafe_allow_html=True)
+
+    with tab3:
+        st.title("Consolidator")
+        st.markdown('<div class="stamp" style="color:#E8A33D;">◐ Testing Phase — design complete, not yet connected to live platform accounts</div>', unsafe_allow_html=True)
+        st.markdown('<div class="brand-sub">Every income source, pulled into one place. Documentation gaps flagged before tax season, not during it.</div>', unsafe_allow_html=True)
+        st.markdown("---")
+        for source, status in [("Upwork", "Would sync automatically"), ("AdSense", "Would sync automatically"), ("Direct clients", "Logged manually, proof flagged if missing")]:
+            st.markdown(f'<div class="ledger-row"><span class="ledger-name">{source}</span><span class="ledger-domain">{status}</span></div>', unsafe_allow_html=True)
