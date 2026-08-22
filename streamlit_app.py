@@ -174,8 +174,16 @@ else:
                         st.markdown(f'<div class="why-line">{line}</div>', unsafe_allow_html=True)
                 st.markdown('<div class="stamp">● Report written to AWS S3 — audit trail</div>', unsafe_allow_html=True)        
 
-        st.markdown('<div class="eyebrow">Your record</div>', unsafe_allow_html=True)
-        st.markdown('<div class="why-line">History is disabled in sandbox mode.</div>', unsafe_allow_html=True)
+        st.markdown('<div class="eyebrow">Your record (Sandbox Demo)</div>', unsafe_allow_html=True)
+        s1, s2, s3 = st.columns(3)
+        with s1: st.markdown('<div class="stat-block"><div class="stat-num">14</div><div class="stat-cap">Checks run</div></div>', unsafe_allow_html=True)
+        with s2: st.markdown('<div class="stat-block"><div class="stat-num">2</div><div class="stat-cap">Flagged high</div></div>', unsafe_allow_html=True)
+        with s3: st.markdown('<div class="stat-block"><div class="stat-num">14</div><div class="stat-cap">Archived to S3</div></div>', unsafe_allow_html=True)
+        
+        st.markdown('<div class="eyebrow">Recent History</div>', unsafe_allow_html=True)
+        st.markdown('<div class="ledger-row ledger-l"><span><span class="ledger-name">Acme Corp</span> &nbsp;<span class="ledger-domain">acme.com</span></span><span class="ledger-verdict" style="color:#3FB980">LOW</span></div>', unsafe_allow_html=True)
+        st.markdown('<div class="ledger-row ledger-h"><span><span class="ledger-name">Sanctioned Test</span> &nbsp;<span class="ledger-domain">unknown.com</span></span><span class="ledger-verdict" style="color:#E5484D">HIGH</span></div>', unsafe_allow_html=True)
+        st.markdown('<div class="ledger-row ledger-m"><span><span class="ledger-name">Startup Inc</span> &nbsp;<span class="ledger-domain">newstartup.io</span></span><span class="ledger-verdict" style="color:#E8A33D">MEDIUM</span></div>', unsafe_allow_html=True)
 
     with tab2:
         st.title("JvX Core")
