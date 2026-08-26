@@ -25,7 +25,7 @@ A 2018 PayPal survey of 500 Indian freelancers found 61% had gone unpaid by a cl
 ## Status
 
 Built and working as a hackathon prototype in a 22-hour window — not yet in production.
-Live demo: `[add your link here if you have one]`
+Live demo: `https://jvxnexus-hackathon.streamlit.app/`
 
 ## Why This Exists
 
